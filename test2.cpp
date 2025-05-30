@@ -83,7 +83,7 @@ class Fourmi{
             position++;
         }
 
-        int changerSalle(Salle* nouvelleSalle, Chemin* chemins[], int nbChemins) {
+        int changerSalle(Salle* nouvelleSalle, Chemin* chemins[], int nbChemins, Salle* salleDepart) {
             // Si la fourmi n'est dans aucune salle, on l'ajoute directement
             if (salle == nullptr) {
                 nouvelleSalle->ajouter_fourmi();
@@ -110,9 +110,9 @@ class Fourmi{
                 if (salle != nullptr) {
                     salle->retirer_fourmi();
                 }
+                std::cout << "f" << id << " - " << salle->getnom() << " - " << nouvelleSalle->getnom() << std::endl;
                 nouvelleSalle->ajouter_fourmi();
                 salle = nouvelleSalle;
-                std::cout << "Fourmi" << id << "déplacée dans la salle : " << nouvelleSalle->getnom() << std::endl;
                 return 1;
             }
         }
@@ -160,51 +160,79 @@ std::vector<Salle*> trouverParcours(Salle* depart, Salle* arrivee, Chemin* chemi
 }
 
 int main(){
-    int fourmis = 3;
+    int fourmis = 50;
     int n = 1;
 
     // Création des salles
     Salle sv(1, "Sv", 50);
-    Salle s2(2, "S1", 1);
-    Salle s3(3, "S2", 1);
-    Salle sd(4, "Sd", 50);
+    Salle s1(2, "S1", 8);
+    Salle s2(3, "S2", 4);
+    Salle s3(4, "S3", 2);
+    Salle s4(5, "S4", 4);
+    Salle s5(6, "S5", 2);
+    Salle s6(7, "S6", 4);
+    Salle s7(8, "S7", 2);
+    Salle s8(9, "S8", 5);
+    Salle s9(10, "S9", 1);
+    Salle s10(11, "S10", 1);
+    Salle s11(12, "S11", 1);
+    Salle s12(13, "S12", 1);
+    Salle s13(14, "S13", 4);
+    Salle s14(15, "S14", 2);
+    Salle sd(16, "Sd", 50);
 
     // Création des chemins
-    Chemin c1(1, &sv, &s2);
-    Chemin c2(2, &sv, &s3);
-    Chemin c3(3, &s2, &sd);
-    Chemin c4(4, &s3, &sd);
+    Chemin c1(1, &s1, &s2);
+    Chemin c2(2, &s2, &s3);
+    Chemin c3(3, &s3, &s4);
+    Chemin c4(4, &s4, &sd);
+    Chemin c5(5, &sv, &s1);
+    Chemin c6(6, &s2, &s5);
+    Chemin c7(7, &s5, &s4);
+    Chemin c8(8, &s13, &sd);
+    Chemin c9(9, &s8, &s12);
+    Chemin c10(10, &s12, &s13);
+    Chemin c11(11, &s6, &s7);
+    Chemin c12(12, &s7, &s9);
+    Chemin c13(13, &s9, &s14);
+    Chemin c14(14, &s14, &sd);
+    Chemin c15(15, &s7, &s10);
+    Chemin c16(16, &s10, &s14);
+    Chemin c17(17, &s1, &s6);
+    Chemin c18(18, &s6, &s8);
+    Chemin c19(19, &s8, &s11);
+    Chemin c20(20, &s11, &s13);
 
-    Chemin* chemins[] = { &c1, &c2, &c3, &c4};
+    Chemin* chemins[] = { &c1, &c2, &c3, &c4, &c5, &c6, &c7, &c8, &c9, &c10,
+                          &c11, &c12, &c13, &c14, &c15, &c16, &c17, &c18, &c19, &c20 };
 
-    Fourmi f1(1);
-    Fourmi f2(2);
-    Fourmi f3(3);
-
-    Fourmi* fourmisTab[] = { &f1, &f2, &f3 };  
+    Fourmi** fourmisTab = new Fourmi*[fourmis];
+    for (int nb = 0; nb < fourmis; nb++){
+        fourmisTab[nb] = new Fourmi(nb + 1);
+    }
 
     for (int i = 0; i < fourmis; i++) {
-        fourmisTab[i]->changerSalle(&sv, chemins, 3);
+        fourmisTab[i]->changerSalle(&sv, chemins, 20, &sv);
     }
 
     // Tableau des étapes à suivre pour chaque fourmi
-    std::vector<Salle*> parcours = trouverParcours(&sv, &sd, chemins, 4);
+    std::vector<Salle*> parcours = trouverParcours(&sv, &sd, chemins, 20);
 
     while (sd.getnb_fourmis() < fourmis) {
         std::cout << "+++++Etape" << n << "+++++" << std::endl;
         for (int i = 0; i < fourmis; i++) {
             // Calculer le chemin optimal depuis la salle actuelle de la fourmi
-            std::vector<Salle*> parcours = trouverParcours(fourmisTab[i]->getsalle(), &sd, chemins, 4);
+            std::vector<Salle*> parcours = trouverParcours(fourmisTab[i]->getsalle(), &sd, chemins, 20);
             if (parcours.size() > 1) {
                 // Essayer la salle optimale d'abord
                 Salle* prochaineSalle = parcours[1];
-                if (fourmisTab[i]->changerSalle(prochaineSalle, chemins, 4) == 1) {
+                if (fourmisTab[i]->changerSalle(prochaineSalle, chemins, 20, &sv) == 1) {
                     fourmisTab[i]->avancerPosition();
                     continue;
                 }
                 // Sinon, essayer les autres voisines qui rapprochent du dortoir
                 Salle* salleActuelle = fourmisTab[i]->getsalle();
-                for (int j = 0; j < 4; j++) {
+                for (int j = 0; j < 20; j++) {
                     Salle* voisin = nullptr;
                     if (chemins[j]->getsalle1() == salleActuelle)
                         voisin = chemins[j]->getsalle2();
@@ -213,8 +241,8 @@ int main(){
 
                     // Vérifie que le voisin est sur un chemin vers le dortoir et n'est pas la salle actuelle
                     std::vector<Salle*> parcoursVoisin = trouverParcours(voisin, &sd, chemins, 4);
-                    if (voisin && voisin != salleActuelle && parcoursVoisin.size() > 0) {
-                        if (fourmisTab[i]->changerSalle(voisin, chemins, 4) == 1) {
+                    if (voisin && voisin != salleActuelle && voisin != &sv && parcoursVoisin.size() > 0) {
+                        if (fourmisTab[i]->changerSalle(voisin, chemins, 20, &sv) == 1) {
                             fourmisTab[i]->avancerPosition();
                             break;
                         }
@@ -222,31 +250,9 @@ int main(){
                 }
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        //std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         n++;
     }
 
     return 0;
 }
-
-//Penser a ajouter une fonction pour vérifier le chemin le plus optimiser vers le dortoir (Sd) depuis une salle
-
-// Placement initial dans la salle A
-//    f1.changerSalle(&s1, chemins, 3);
-//    f2.changerSalle(&s1, chemins, 3);
-//    f3.changerSalle(&s1, chemins, 3);
-
-    // Étape 1 : Salle A -> Salle B
-//    f1.changerSalle(&s2, chemins, 3);
-//    f2.changerSalle(&s2, chemins, 3);
-//    f3.changerSalle(&s2, chemins, 3);
-
-    // Étape 2 : Salle B -> Salle C
-//    f1.changerSalle(&s3, chemins, 3);
-//    f2.changerSalle(&s3, chemins, 3);
-//    f3.changerSalle(&s3, chemins, 3);
-
-    // Étape 3 : Salle C -> Dortoir
-//    f1.changerSalle(&s4, chemins, 3);
-//    f2.changerSalle(&s4, chemins, 3);
-//    f3.changerSalle(&s4, chemins, 3);
